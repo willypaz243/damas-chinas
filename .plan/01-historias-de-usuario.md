@@ -732,6 +732,46 @@
             Observaciones: Paleta de colores definida y consistente. Tipografía legible y tamaños apropiados. Efectos hover en casillas y fichas. Diseño responsive que funcione en escritorio y tablet. Layout centrado y equilibrado con espaciado adecuado.
         </td>
     </tr>
+        </table>
+
+### Historia de Usuario N° 19
+
+<table border="1">
+    <tr>
+        <td colspan="3" style="text-align: end;">Historia de usuario</td>
+    </tr>
+    <tr>
+        <td>Número: 19</td>
+        <td colspan="2">Usuario: Jugador</td>
+    </tr>
+    <tr>
+        <td colspan="3">
+            Nombre Historia: Pantalla de configuración de jugadores
+        </td>
+    </tr>
+    <tr>
+        <td colspan="2">Prioridad: Alta</td>
+        <td>Riesgo: Media</td>
+    </tr>
+    <tr>
+        <td colspan="2">Puntos estimados: 5</td>
+        <td>Iteración asignada: 1</td>
+    </tr>
+    <tr>
+        <td colspan="3">
+            Programador responsable:
+        </td>
+    </tr>
+    <tr>
+        <td colspan="3">
+            Descripción: Como jugador, quiero seleccionar la cantidad de jugadores (2 a 6) y asignar cada jugador a una punta diferente del tablero antes de comenzar, para personalizar la configuración inicial de cada partida.
+        </td>
+    </tr>
+    <tr>
+        <td colspan="3">
+            Observaciones: El selector muestra un mini-tablero SVG con las 6 puntas destacadas y etiquetadas (Norte, Noreste, Sudeste, Sur, Suroeste, Noroeste). Al elegir la cantidad de jugadores (2-6), se habilitan exactamente esa cantidad de puntas para seleccionar. Cada clic en una punta asigna el siguiente jugador no asignado. Se generan colores automáticamente distinguibles para cada jugador. Se valida mínimo 2 puntas seleccionadas. El botón "Jugar" envía la config al motor del juego.
+        </td>
+    </tr>
 </table>
 
 ---
@@ -741,7 +781,7 @@
 ### Pareja A — Motor del Juego (Lógica)
 
 <table border="1">
-    <tr style="background-color: #D9E2F3;">
+    <tr>
         <th>N°</th>
         <th>Historia</th>
         <th>Prioridad</th>
@@ -750,21 +790,21 @@
         <th>Iteración</th>
     </tr>
     <tr><td>1</td><td>Estado del tablero</td><td>Alta</td><td>Baja</td><td>5</td><td>1</td></tr>
-    <tr><td>2</td><td>Posicionamiento inicial de fichas</td><td>Alta</td><td>Baja</td><td>3</td><td>1</td></tr>
+    <tr><td>2</td><td>Posicionamiento inicial (multi-jugador)</td><td>Alta</td><td>Baja</td><td>5</td><td>1</td></tr>
     <tr><td>3</td><td>Movimiento básico (paso adyacente)</td><td>Alta</td><td>Media</td><td>5</td><td>2</td></tr>
     <tr><td>4</td><td>Movimiento con salto (cadena)</td><td>Alta</td><td>Alta</td><td>8</td><td>3</td></tr>
-    <tr><td>5</td><td>Gestión de turnos</td><td>Alta</td><td>Baja</td><td>3</td><td>2</td></tr>
+    <tr><td>5</td><td>Gestión de turnos (multi-jugador)</td><td>Alta</td><td>Baja</td><td>3</td><td>2</td></tr>
     <tr><td>6</td><td>Validación completa de movimientos</td><td>Alta</td><td>Media</td><td>5</td><td>2</td></tr>
-    <tr><td>7</td><td>Detección de victoria</td><td>Alta</td><td>Baja</td><td>3</td><td>3</td></tr>
+    <tr><td>7</td><td>Detección de victoria (individual)</td><td>Alta</td><td>Baja</td><td>3</td><td>3</td></tr>
     <tr><td>8</td><td>Historial de movimientos</td><td>Media</td><td>Baja</td><td>3</td><td>4</td></tr>
     <tr><td>9</td><td>Deshacer último movimiento</td><td>Media</td><td>Baja</td><td>3</td><td>4</td></tr>
-    <tr style="background-color: #F2F2F2;"><td colspan="4" style="text-align: right;"><b>Subtotal Pareja A</b></td><td><b>35 pts</b></td><td></td></tr>
+    <tr><td colspan="4" style="text-align: right;"><b>Subtotal Pareja A</b></td><td><b>40 pts</b></td><td></td></tr>
 </table>
 
 ### Pareja B — Interfaz de Usuario (UI/UX)
 
 <table border="1">
-    <tr style="background-color: #FCE4D6;">
+    <tr>
         <th>N°</th>
         <th>Historia</th>
         <th>Prioridad</th>
@@ -777,38 +817,39 @@
     <tr><td>12</td><td>Selección visual de ficha</td><td>Media</td><td>Media</td><td>5</td><td>2</td></tr>
     <tr><td>13</td><td>Reinicio de juego sin recargar</td><td>Media</td><td>Baja</td><td>2</td><td>2</td></tr>
     <tr><td>14</td><td>Animación de movimientos</td><td>Baja</td><td>Media</td><td>5</td><td>3</td></tr>
-    <tr><td>15</td><td>Indicador de turno y estado del juego</td><td>Media</td><td>Baja</td><td>3</td><td>3</td></tr>
+    <tr><td>15</td><td>Indicador de turno (multi-jugador)</td><td>Media</td><td>Baja</td><td>3</td><td>2</td></tr>
     <tr><td>16</td><td>Pantalla de victoria</td><td>Baja</td><td>Baja</td><td>3</td><td>4</td></tr>
     <tr><td>17</td><td>Historial visual de movimientos</td><td>Baja</td><td>Baja</td><td>3</td><td>4</td></tr>
     <tr><td>18</td><td>Diseño visual general y pulido</td><td>Baja</td><td>Baja</td><td>5</td><td>4</td></tr>
-    <tr style="background-color: #F2F2F2;"><td colspan="4" style="text-align: right;"><b>Subtotal Pareja B</b></td><td><b>34 pts</b></td><td></td></tr>
+    <tr><td>19</td><td>Pantalla de configuración de jugadores</td><td>Alta</td><td>Media</td><td>5</td><td>1</td></tr>
+    <tr><td colspan="4" style="text-align: right;"><b>Subtotal Pareja B</b></td><td><b>39 pts</b></td><td></td></tr>
 </table>
 
 ### Resumen General
 
 <table border="1">
-    <tr style="background-color: #D9E2F3;">
+    <tr>
         <th></th>
         <th>Historias</th>
         <th>Puntos XP</th>
     </tr>
-    <tr><td><b>Pareja A (Motor)</b></td><td>9 historias</td><td>35 pts</td></tr>
-    <tr style="background-color: #F2F2F2;"><td><b>Pareja B (UI/UX)</b></td><td>9 historias</td><td>34 pts</td></tr>
-    <tr><td colspan="2" style="text-align: right;"><b>Total</b></td><td><b>69 pts</b></td></tr>
+    <tr><td><b>Pareja A (Motor)</b></td><td>9 historias</td><td>40 pts</td></tr>
+    <tr><td><b>Pareja B (UI/UX)</b></td><td>10 historias</td><td>39 pts</td></tr>
+    <tr><td colspan="2" style="text-align: right;"><b>Total</b></td><td><b>79 pts</b></td></tr>
 </table>
 
 ### Distribución por Iteración
 
 <table border="1">
-    <tr style="background-color: #D9E2F3;">
+    <tr>
         <th>Iteración</th>
         <th>Historias asignadas</th>
         <th>Puntos XP</th>
         <th>Responsable principal</th>
     </tr>
-    <tr><td>Sprint 1</td><td>HU-1, HU-2, HU-10, HU-11</td><td>16 pts</td><td>Pareja A + Pareja B</td></tr>
-    <tr style="background-color: #F2F2F2;"><td>Sprint 2</td><td>HU-3, HU-5, HU-6, HU-12, HU-13</td><td>20 pts</td><td>Pareja A + Pareja B</td></tr>
-    <tr><td>Sprint 3</td><td>HU-4, HU-7, HU-14, HU-15</td><td>19 pts</td><td>Pareja A + Pareja B</td></tr>
-    <tr style="background-color: #F2F2F2;"><td>Sprint 4</td><td>HU-8, HU-9, HU-16, HU-17, HU-18</td><td>17 pts</td><td>Pareja A + Pareja B</td></tr>
+    <tr><td>Sprint 1</td><td>HU-1, HU-2, HU-10, HU-11, HU-19</td><td>26 pts</td><td>Pareja A + Pareja B</td></tr>
+    <tr><td>Sprint 2</td><td>HU-3, HU-5, HU-6, HU-12, HU-13, HU-15</td><td>23 pts</td><td>Pareja A + Pareja B</td></tr>
+    <tr><td>Sprint 3</td><td>HU-4, HU-7, HU-14</td><td>16 pts</td><td>Pareja A + Pareja B</td></tr>
+    <tr><td>Sprint 4</td><td>HU-8, HU-9, HU-16, HU-17, HU-18</td><td>17 pts</td><td>Pareja A + Pareja B</td></tr>
     <tr><td>Sprint 5</td><td>Integración, pruebas y demo</td><td>8 pts</td><td>Ambas parejas</td></tr>
 </table>
