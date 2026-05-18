@@ -4,34 +4,35 @@ Juego de Damas Chinas implementado con React, TypeScript y Vite.
 
 ## Requisitos
 
-- [Bun](https://bun.sh/) >= 1.0
+- [Node.js](https://nodejs.org/) >= 18.x
+- [pnpm](https://pnpm.io/) >= 8.0
 
 ## Instalación
 
 ```bash
-bun install
+pnpm install
 ```
 
 ## Desarrollo
 
 ```bash
-bun run dev
+pnpm dev
 ```
 
 ## Build
 
 ```bash
-bun run build
+pnpm build
 ```
 
 ## Preview
 
 ```bash
-bun run preview
+pnpm preview
 ```
 
 ## Linting
 
 ```bash
-bun run lint
+pnpm lint
 ```
