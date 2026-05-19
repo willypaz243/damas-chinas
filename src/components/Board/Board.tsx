@@ -30,7 +30,7 @@ export default function Board({ size = DEFAULT_SIZE, state, onCellClick }: Board
     if (!state) return [];
     return Array.from(state.board.values())
       .filter(cell => cell.pieceColor !== null && cell.piecePlayerId !== null);
-  }, [state]);
+  }, [state?.board, state?.currentPlayerIndex, state?.selectedPiece]);
 
   return (
     <div className={styles.boardWrapper}>
