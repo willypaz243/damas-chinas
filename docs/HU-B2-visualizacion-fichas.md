@@ -8,6 +8,8 @@ Implementar el componente React para renderizar fichas circulares SVG con color 
 - `src/components/Piece/Piece.module.css`
 - `src/components/Piece/Piece.test.tsx`
 - `src/components/Board/Board.tsx`
+- `src/components/Board/Board.test.tsx`
+- `src/App.tsx`
 - `vite.config.ts`
 - `vitest.config.ts` (nuevo)
 - `vitest.setup.ts` (nuevo)
@@ -31,9 +33,15 @@ Componente funcional que renderiza una ficha como un círculo SVG con:
 ### Integración con Board (`Board.tsx`)
 - Se añadió prop `state?: GameState` para recibir el estado del juego
 - Renderiza las fichas de los jugadores sobre el tablero
-- Filtra celdas con `pieceColor !== null` para mostrar solo fichas activas
+- Filtra celdas con `pieceColor !== null && piecePlayerId !== null` para mostrar solo fichas activas
 - Aplica `isSelected` basado en `state.selectedPiece`
 - Añade gradiente radial SVG en `<defs>` para reutilizar en todas las fichas
+- **Corrección de coordenadas**: Se invirtió el eje Y en `hexToPixel()` para que las coordenadas negativas de `r` aparezcan arriba (Y menor) y las positivas abajo (Y mayor)
+
+### Integración en App.tsx
+- Inicializa `GameEngine` con configuración de 2 jugadores
+- Pasa `gameState` al componente `Board`
+- Maneja clicks en celdas para selección de piezas
 
 ### Configuración de Tests (vitest.config.ts, vitest.setup.ts)
 - **jsdom environment**: Para tests de componentes React
@@ -102,11 +110,13 @@ Cuando una ficha está seleccionada:
 
 ## Pruebas
 
-Se añadieron 3 tests en `src/components/Piece/Piece.test.tsx`:
+Se añadieron tests en `src/components/Piece/Piece.test.tsx` y `src/components/Board/Board.test.tsx`:
 
 1. **Renderiza círculo con color correcto**: Verifica que el círculo se renderiza con el color HEX especificado
 2. **Aplica estilo selected**: Verifica que la clase `selected` se aplica cuando `isSelected={true}`
 3. **Colores diferentes por jugador**: Verifica que múltiples fichas mantienen sus colores individuales
+4. **Renderiza piezas cuando se pasa state**: Verifica que las piezas aparecen con GameState
+5. **Renderiza 20 piezas para 2 jugadores**: Valida que cada jugador tiene 10 fichas
 
 ## Cómo ejecutar
 
@@ -166,7 +176,9 @@ El sistema soporta 6 colores distinguibles para multi-jugador:
 - ✅ Efecto visual de selección (borde dorado + glow)
 - ✅ Gradiente radial para efecto 3D
 - ✅ Integrado en Board.tsx con GameState
-- ✅ Tests pasando (3/3)
+- ✅ Corrección de coordenadas hex-to-pixel (eje Y invertido)
+- ✅ Fichas inicializadas en las 6 puntas de la estrella
+- ✅ Tests pasando (7/7 en componentes UI)
 
 ## Próximos pasos
 - HU-B3: Selección visual de ficha (highlight + valid moves)
