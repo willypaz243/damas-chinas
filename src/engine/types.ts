@@ -5,6 +5,7 @@ export interface PlayerConfig {
   color: string;
   label: string;
   piecesInTarget: number;
+  pointIndex: number;
 }
 
 export interface HexCoord {

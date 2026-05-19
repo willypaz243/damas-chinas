@@ -1,4 +1,4 @@
-import type { Cell, HexCoord } from "./types";
+import type { Cell, HexCoord, PlayerPoint } from "./types";
 
 export class HexBoard {
   private board: Map<string, Cell>;
@@ -10,6 +10,48 @@ export class HexBoard {
     { q: -1, r: 0 },
     { q: -1, r: 1 },
     { q: 0, r: 1 },
+  ];
+
+  static readonly STAR_POINTS: PlayerPoint[] = [
+    { id: 0, label: "Sur", coord: { q: 0, r: -2 } },
+    { id: 1, label: "Norte", coord: { q: 0, r: 2 } },
+    { id: 2, label: "Noreste", coord: { q: 2, r: 0 } },
+    { id: 3, label: "Suroeste", coord: { q: -2, r: 0 } },
+    { id: 4, label: "Sureste", coord: { q: 2, r: -3 } },
+    { id: 5, label: "Noroeste", coord: { q: -2, r: 3 } },
+  ];
+
+  private static readonly TRIANGLE_CELLS: HexCoord[][] = [
+    [
+      { q: 0, r: -4 }, { q: 1, r: -4 }, { q: 2, r: -4 }, { q: 3, r: -4 }, { q: 4, r: -4 },
+      { q: 0, r: -3 }, { q: 1, r: -3 }, { q: 2, r: -3 }, { q: 3, r: -3 },
+      { q: 0, r: -2 },
+    ],
+    [
+      { q: 0, r: 4 }, { q: -1, r: 4 }, { q: -2, r: 4 }, { q: -3, r: 4 }, { q: -4, r: 4 },
+      { q: 0, r: 3 }, { q: -1, r: 3 }, { q: -2, r: 3 }, { q: -3, r: 3 },
+      { q: 0, r: 2 },
+    ],
+    [
+      { q: 4, r: 0 }, { q: 4, r: -1 }, { q: 4, r: -2 }, { q: 4, r: -3 }, { q: 4, r: -4 },
+      { q: 3, r: 0 }, { q: 3, r: -1 }, { q: 3, r: -2 }, { q: 3, r: -3 },
+      { q: 2, r: 0 },
+    ],
+    [
+      { q: -4, r: 0 }, { q: -4, r: 1 }, { q: -4, r: 2 }, { q: -4, r: 3 }, { q: -4, r: 4 },
+      { q: -3, r: 0 }, { q: -3, r: 1 }, { q: -3, r: 2 }, { q: -3, r: 3 },
+      { q: -2, r: 0 },
+    ],
+    [
+      { q: 4, r: -4 }, { q: 3, r: -5 }, { q: 2, r: -5 }, { q: 1, r: -4 }, { q: 0, r: -3 },
+      { q: 3, r: -4 }, { q: 2, r: -4 }, { q: 1, r: -3 }, { q: 0, r: -4 },
+      { q: 2, r: -3 },
+    ],
+    [
+      { q: -4, r: 4 }, { q: -3, r: 5 }, { q: -2, r: 5 }, { q: -1, r: 4 }, { q: 0, r: 3 },
+      { q: -3, r: 4 }, { q: -2, r: 4 }, { q: -1, r: 3 }, { q: 0, r: 4 },
+      { q: -2, r: 3 },
+    ],
   ];
 
   constructor() {
@@ -71,5 +113,20 @@ export class HexBoard {
       q: coord.q + direction.q,
       r: coord.r + direction.r,
     })).filter((neighbor) => HexBoard.isValidPosition(neighbor.q, neighbor.r));
+  }
+
+  static getTriangleCells(pointIndex: number): HexCoord[] {
+    return [...this.TRIANGLE_CELLS[pointIndex]];
+  }
+
+  static getTargetZone(pointIndex: number): HexCoord[] {
+    const oppositeIndex = (pointIndex % 2 === 0)
+      ? pointIndex + 1
+      : pointIndex - 1;
+    return this.getTriangleCells(oppositeIndex);
+  }
+
+  static getInitialPositions(pointIndex: number): HexCoord[] {
+    return this.getTriangleCells(pointIndex);
   }
 }

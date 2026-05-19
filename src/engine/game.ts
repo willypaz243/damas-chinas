@@ -1,16 +1,15 @@
 import { HexBoard } from "./board";
 import type {
-  Cell,
-  GameState,
   GameConfig,
-  PlayerId,
-  PlayerConfig,
+  GameState,
   HexCoord,
   Move,
-  MoveType,
-  ValidationResult,
   MoveResult,
+  MoveType,
+  PlayerConfig,
+  PlayerId,
   SelectionResult,
+  ValidationResult,
 } from "./types";
 
 export class GameEngine {
@@ -65,62 +64,22 @@ export class GameEngine {
       winner: null,
       isGameOver: false,
     };
-    
+
     this.initializePieces(config);
-    
+
     return this.gameState;
   }
 
   private initializePieces(config: GameConfig): void {
-    // Usar coordenadas del test de referencia basadas en la geometría del tablero
-    // Jugador 1 (bottom): filas -4 a 0
-    // Jugador 2 (top): filas 0 a 4
-    
-    const initialPositions: { [key: number]: [number, number][] } = {
-      0: [
-        [0, -4], [1, -4], [2, -4], [3, -4], [4, -4],
-        [0, -3], [1, -3], [2, -3], [3, -3],
-        [0, -2],
-      ],
-      1: [
-        [0, 4], [-1, 4], [-2, 4], [-3, 4], [-4, 4],
-        [0, 3], [-1, 3], [-2, 3], [-3, 3],
-        [0, 2],
-      ],
-      2: [
-        [4, 0], [4, -1], [4, -2], [4, -3], [4, -4],
-        [3, 0], [3, -1], [3, -2], [3, -3],
-        [2, 0],
-      ],
-      3: [
-        [-4, 0], [-4, 1], [-4, 2], [-4, 3], [-4, 4],
-        [-3, 0], [-3, 1], [-3, 2], [-3, 3],
-        [-2, 0],
-      ],
-      4: [
-        [4, -4], [3, -5], [2, -5], [1, -4], [0, -3],
-        [3, -4], [2, -4], [1, -3], [0, -4],
-        [2, -3],
-      ],
-      5: [
-        [-4, 4], [-3, 5], [-2, 5], [-1, 4], [0, 3],
-        [-3, 4], [-2, 4], [-1, 3], [0, 4],
-        [-2, 3],
-      ],
-    };
+    for (const player of config.players) {
+      const positions = HexBoard.getInitialPositions(player.pointIndex);
 
-    for (let i = 0; i < config.players.length; i++) {
-      const player = config.players[i];
-      const positions = initialPositions[i] || [];
-      
-      for (const [q, r] of positions) {
-        if (HexBoard.isValidPosition(q, r)) {
-          const key = `${q},${r}`;
-          const cell = this.gameState.board.get(key);
-          if (cell) {
-            cell.pieceColor = player.color;
-            cell.piecePlayerId = player.id;
-          }
+      for (const coord of positions) {
+        const key = HexBoard.getKey(coord);
+        const cell = this.gameState.board.get(key);
+        if (cell) {
+          cell.pieceColor = player.color;
+          cell.piecePlayerId = player.id;
         }
       }
     }
@@ -128,7 +87,7 @@ export class GameEngine {
 
   canMove(from: HexCoord, to: HexCoord): ValidationResult {
     const fromCell = this.gameState.board.get(HexBoard.getKey(from));
-    
+
     if (!fromCell) {
       return { valid: false, reason: "no_piece" };
     }
@@ -142,7 +101,7 @@ export class GameEngine {
     }
 
     const toCell = this.gameState.board.get(HexBoard.getKey(to));
-    
+
     if (!toCell) {
       return { valid: false, reason: "invalid_position" };
     }
@@ -152,9 +111,7 @@ export class GameEngine {
     }
 
     const neighbors = this.board.getNeighbors(from);
-    const isAdjacent = neighbors.some(
-      (n) => n.q === to.q && n.r === to.r
-    );
+    const isAdjacent = neighbors.some((n) => n.q === to.q && n.r === to.r);
 
     if (isAdjacent) {
       return { valid: true };
@@ -173,7 +130,7 @@ export class GameEngine {
     if (!fromCell) return false;
 
     const neighbors = this.board.getNeighbors(from);
-    
+
     for (const neighbor of neighbors) {
       const neighborCell = this.gameState.board.get(HexBoard.getKey(neighbor));
       if (neighborCell?.pieceColor !== null) {
@@ -181,22 +138,24 @@ export class GameEngine {
           q: neighbor.q + (neighbor.q - from.q),
           r: neighbor.r + (neighbor.r - from.r),
         };
-        
+
         if (jumpTarget.q === to.q && jumpTarget.r === to.r) {
-          const targetCell = this.gameState.board.get(HexBoard.getKey(jumpTarget));
+          const targetCell = this.gameState.board.get(
+            HexBoard.getKey(jumpTarget),
+          );
           if (targetCell?.pieceColor === null) {
             return true;
           }
         }
       }
     }
-    
+
     return false;
   }
 
   executeMove(from: HexCoord, to: HexCoord): MoveResult {
     const validation = this.canMove(from, to);
-    
+
     if (!validation.valid) {
       return { success: false, error: validation.reason };
     }
@@ -232,11 +191,11 @@ export class GameEngine {
     this.gameState.moveHistory.push(move);
     this.gameState.selectedPiece = null;
     this.gameState.validMoves = [];
-    
+
     this.updatePlayerProgress();
 
     const nextTurn = this.switchTurn();
-    
+
     const winner = this.checkVictory();
     if (winner) {
       this.gameState.winner = winner;
@@ -247,25 +206,21 @@ export class GameEngine {
   }
 
   private updatePlayerProgress(): void {
-    this.gameState.players.forEach((player) => {
+    for (const player of this.gameState.players) {
       player.piecesInTarget = 0;
-    });
-
-    this.gameState.board.forEach((cell) => {
-      if (cell.piecePlayerId !== null && cell.pieceColor !== null) {
-        const playerIndex = this.gameState.players.findIndex(
-          (p) => p.id === cell.piecePlayerId
-        );
-        if (playerIndex !== -1) {
-          this.gameState.players[playerIndex].piecesInTarget++;
+      const targetZone = HexBoard.getTargetZone(player.pointIndex);
+      for (const coord of targetZone) {
+        const cell = this.gameState.board.get(HexBoard.getKey(coord));
+        if (cell?.piecePlayerId === player.id) {
+          player.piecesInTarget++;
         }
       }
-    });
+    }
   }
 
   selectPiece(coord: HexCoord): SelectionResult {
     const cell = this.gameState.board.get(HexBoard.getKey(coord));
-    
+
     if (!cell || !cell.piecePlayerId) {
       return { success: false };
     }
@@ -275,7 +230,7 @@ export class GameEngine {
     }
 
     const validMoves = this.getValidMoves(coord);
-    
+
     this.gameState.selectedPiece = coord;
     this.gameState.validMoves = validMoves;
 
@@ -285,7 +240,7 @@ export class GameEngine {
   getValidMoves(coord: HexCoord): HexCoord[] {
     const validMoves: HexCoord[] = [];
     const neighbors = this.board.getNeighbors(coord);
-    
+
     for (const neighbor of neighbors) {
       const neighborCell = this.gameState.board.get(HexBoard.getKey(neighbor));
       if (neighborCell?.pieceColor === null) {
@@ -300,7 +255,9 @@ export class GameEngine {
           q: neighbor.q + (neighbor.q - coord.q),
           r: neighbor.r + (neighbor.r - coord.r),
         };
-        const targetCell = this.gameState.board.get(HexBoard.getKey(jumpTarget));
+        const targetCell = this.gameState.board.get(
+          HexBoard.getKey(jumpTarget),
+        );
         if (targetCell?.pieceColor === null) {
           validMoves.push(jumpTarget);
         }
@@ -311,62 +268,44 @@ export class GameEngine {
   }
 
   switchTurn(): boolean {
-    this.gameState.currentPlayerIndex = 
+    this.gameState.currentPlayerIndex =
       (this.gameState.currentPlayerIndex + 1) % this.gameState.players.length;
-    this.gameState.currentPlayer = this.gameState.players[this.gameState.currentPlayerIndex];
+    this.gameState.currentPlayer =
+      this.gameState.players[this.gameState.currentPlayerIndex];
     this.gameState.selectedPiece = null;
     this.gameState.validMoves = [];
     return true;
   }
 
   getNextPlayerId(): PlayerId {
-    const nextIndex = (this.gameState.currentPlayerIndex + 1) % this.gameState.players.length;
+    const nextIndex =
+      (this.gameState.currentPlayerIndex + 1) % this.gameState.players.length;
     return this.gameState.players[nextIndex].id;
   }
 
   getPreviousPlayerId(): PlayerId {
-    const prevIndex = 
-      (this.gameState.currentPlayerIndex - 1 + this.gameState.players.length) % 
+    const prevIndex =
+      (this.gameState.currentPlayerIndex - 1 + this.gameState.players.length) %
       this.gameState.players.length;
     return this.gameState.players[prevIndex].id;
   }
 
   checkVictory(): PlayerConfig | null {
-    const targetZones = [
-      [{ q: 0, r: 4 }, { q: 1, r: 3 }, { q: 2, r: 2 }, { q: 3, r: 1 }, { q: 4, r: 0 }],
-      [{ q: 0, r: -4 }, { q: -1, r: -3 }, { q: -2, r: -2 }, { q: -3, r: -1 }, { q: -4, r: 0 }],
-      [{ q: -4, r: 0 }, { q: -3, r: -1 }, { q: -2, r: -2 }, { q: -1, r: -3 }, { q: 0, r: -4 }],
-      [{ q: 4, r: 0 }, { q: 3, r: 1 }, { q: 2, r: 2 }, { q: 1, r: 3 }, { q: 0, r: 4 }],
-      [{ q: -4, r: 4 }, { q: -3, r: 3 }, { q: -2, r: 2 }, { q: -1, r: 1 }, { q: 0, r: 0 }],
-      [{ q: 4, r: -4 }, { q: 3, r: -3 }, { q: 2, r: -2 }, { q: 1, r: -1 }, { q: 0, r: 0 }],
-    ];
-
     for (const player of this.gameState.players) {
-      const playerPieces = this.countPlayerPiecesInTarget(player.id, targetZones);
-      if (playerPieces >= 10) {
+      const targetZone = HexBoard.getTargetZone(player.pointIndex);
+      let count = 0;
+      for (const coord of targetZone) {
+        const cell = this.gameState.board.get(HexBoard.getKey(coord));
+        if (cell?.piecePlayerId === player.id) {
+          count++;
+        }
+      }
+      if (count >= 10) {
         return player;
       }
     }
 
     return null;
-  }
-
-  private countPlayerPiecesInTarget(
-    playerId: PlayerId,
-    targetZones: HexCoord[][]
-  ): number {
-    let count = 0;
-    
-    targetZones.forEach((zone) => {
-      zone.forEach((coord) => {
-        const cell = this.gameState.board.get(HexBoard.getKey(coord));
-        if (cell?.piecePlayerId === playerId) {
-          count++;
-        }
-      });
-    });
-
-    return count;
   }
 
   undoLastMove(): boolean {
@@ -391,7 +330,7 @@ export class GameEngine {
       winner: this.gameState.winner,
       isGameOver: this.gameState.isGameOver,
     };
-    
+
     this.snapshotStack.push(stateCopy);
   }
 }
