@@ -1,0 +1,18 @@
+.piece {
+  transition: transform 0.2s ease;
+  cursor: pointer;
+}
+
+.pieceCircle {
+  filter: drop-shadow(0px 2px 3px rgba(0, 0, 0, 0.3));
+}
+
+.pieceCircle.selected {
+  stroke: #FFD700;
+  stroke-width: 3;
+  filter: drop-shadow(0px 0px 8px rgba(255, 215, 0, 0.8));
+}
+
+.pieceHighlight {
+  pointer-events: none;
+}
