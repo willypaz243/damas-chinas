@@ -10,7 +10,7 @@ const DEFAULT_RADIUS = 22;
 
 function hexToPixel(coord: HexCoord, radius: number, originX: number, originY: number): [number, number] {
   const x = radius * Math.sqrt(3) * (coord.q + coord.r / 2) + originX;
-  const y = radius * 1.5 * coord.r + originY;
+  const y = -radius * 1.5 * coord.r + originY;
   return [x, y];
 }
 
