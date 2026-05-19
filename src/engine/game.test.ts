@@ -67,8 +67,10 @@ describe("GameEngine", () => {
     const config = create2PlayerConfig();
     engine.reset(config);
 
-    const from = { q: 0, r: -4 };
-    const to = { q: -1, r: -4 };
+    // Jugador 1 está en triángulo Sur (point 0): mover a celda vacía adyacente
+    // (-4, 5) es ocupada, (-3, 5) también, pero (-4, 4) está vacía
+    const from = { q: -4, r: 5 };
+    const to = { q: -4, r: 4 };
 
     const result = engine.canMove(from, to);
     expect(result.valid).toBe(true);
@@ -80,8 +82,9 @@ describe("GameEngine", () => {
     const config = create2PlayerConfig();
     engine.reset(config);
 
-    const from = { q: 0, r: -4 };
-    const to = { q: 0, r: -4 };
+    // Misma celda - ocupada por pieza del jugador 1
+    const from = { q: -4, r: 5 };
+    const to = { q: -4, r: 5 };
 
     const result = engine.canMove(from, to);
     expect(result.valid).toBe(false);
@@ -93,8 +96,9 @@ describe("GameEngine", () => {
     const config = create2PlayerConfig();
     engine.reset(config);
 
-    const from = { q: 0, r: 4 };
-    const to = { q: 0, r: 3 };
+    // Intentar mover pieza del jugador 2 (triángulo Norte)
+    const from = { q: 1, r: -5 };
+    const to = { q: 1, r: -4 };
 
     const result = engine.canMove(from, to);
     expect(result.valid).toBe(false);
@@ -106,8 +110,8 @@ describe("GameEngine", () => {
     const config = create2PlayerConfig();
     engine.reset(config);
 
-    const from = { q: 0, r: -4 };
-    const to = { q: -1, r: -4 };
+    const from = { q: -4, r: 5 };
+    const to = { q: -4, r: 4 };
 
     const result = engine.executeMove(from, to);
     expect(result.success).toBe(true);
@@ -139,7 +143,7 @@ describe("GameEngine", () => {
     const config = create2PlayerConfig();
     engine.reset(config);
 
-    const coord = { q: 0, r: -4 };
+    const coord = { q: -4, r: 5 };
     const result = engine.selectPiece(coord);
 
     expect(result.success).toBe(true);
