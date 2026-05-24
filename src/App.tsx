@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react';
 import { Board } from './components/Board/Board';
 import { TurnIndicator } from './components/TurnIndicator/TurnIndicator';
+import { VictoryModal } from './components/VictoryModal/VictoryModal';
 import { GameEngine } from './engine/game';
 import type { GameConfig, HexCoord, PlayerId } from './engine/types';
 
@@ -14,7 +15,7 @@ const GAME_CONFIG: GameConfig = {
 };
 
 export function useEngine() {
-  const [engine] = useState(() => new GameEngine(GAME_CONFIG));
+  const [engine, setEngine] = useState(() => new GameEngine(GAME_CONFIG));
   const [state, setState] = useState(() => engine.getState());
   const [selectedCell, setSelectedCell] = useState<HexCoord | null>(null);
   const [validMoves, setValidMoves] = useState<HexCoord[]>([]);
@@ -33,6 +34,8 @@ export function useEngine() {
       }
     }
 
+    if (state.isGameOver) return;
+
     const result = engine.selectPiece(coord);
     if (result.success) {
       setSelectedCell(coord);
@@ -41,13 +44,21 @@ export function useEngine() {
       setSelectedCell(null);
       setValidMoves([]);
     }
-  }, [engine, selectedCell, validMoves]);
+  }, [engine, selectedCell, validMoves, state.isGameOver]);
 
-  return { state, selectedCell, validMoves, handleCellClick };
+  const handleReset = useCallback(() => {
+    const newEngine = new GameEngine(GAME_CONFIG);
+    setEngine(newEngine);
+    setState(newEngine.getState());
+    setSelectedCell(null);
+    setValidMoves([]);
+  }, []);
+
+  return { state, selectedCell, validMoves, handleCellClick, handleReset };
 }
 
 function App() {
-  const { state, selectedCell, validMoves, handleCellClick } = useEngine();
+  const { state, selectedCell, validMoves, handleCellClick, handleReset } = useEngine();
 
   return (
     <main>
@@ -60,6 +71,13 @@ function App() {
         validMoves={validMoves}
         onCellClick={handleCellClick}
       />
+      {state.isGameOver && state.winner && (
+        <VictoryModal
+          winnerLabel={state.winner.label}
+          winnerColor={state.winner.color}
+          onReset={handleReset}
+        />
+      )}
     </main>
   );
 }

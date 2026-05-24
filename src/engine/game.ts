@@ -61,8 +61,13 @@ export class GameEngine implements IGameEngine {
       });
   }
 
-  private getJumpMoves(coord: HexCoord): HexCoord[] {
+  private findJumpChain(coord: HexCoord, visited: Set<string> = new Set()): HexCoord[] {
     const jumps: HexCoord[] = [];
+    const key = this.cellKey(coord.q, coord.r);
+    if (visited.has(key)) return jumps;
+    visited = new Set(visited);
+    visited.add(key);
+
     const neighbors = this.board.getNeighbors(coord.q, coord.r);
 
     for (const n of neighbors) {
@@ -75,6 +80,7 @@ export class GameEngine implements IGameEngine {
       const bCell = this.getCell(beyond.q, beyond.r);
       if (bCell && bCell.pieceColor === null) {
         jumps.push(beyond);
+        jumps.push(...this.findJumpChain(beyond, visited));
       }
     }
 
@@ -86,7 +92,14 @@ export class GameEngine implements IGameEngine {
     const cell = this.getCell(coord.q, coord.r);
     if (!cell || cell.pieceColor === null) return [];
 
-    return [...this.getStepMoves(coord), ...this.getJumpMoves(coord)];
+    return [...this.getStepMoves(coord), ...this.findJumpChain(coord)];
+  }
+
+  private getTargetZoneCells(player: PlayerConfig): HexCoord[] {
+    if (player.pointIndex === 0) {
+      return this.board.getAllCells().filter(c => c.r < -4);
+    }
+    return this.board.getAllCells().filter(c => c.r > 4);
   }
 
   private setSelection(coord: HexCoord | null, moves: HexCoord[]): void {
@@ -167,7 +180,16 @@ export class GameEngine implements IGameEngine {
       validMoves: [],
     };
 
-    this.switchTurn();
+    const winner = this.checkVictory();
+    if (winner) {
+      this.state = {
+        ...this.state,
+        winner,
+        isGameOver: true,
+      };
+    } else {
+      this.switchTurn();
+    }
     return { success: true, move };
   }
 
@@ -183,6 +205,19 @@ export class GameEngine implements IGameEngine {
   }
 
   checkVictory(): PlayerConfig | null {
+    for (const player of this.config.players) {
+      const targetCells = this.getTargetZoneCells(player);
+      let count = 0;
+      for (const tc of targetCells) {
+        const cell = this.getCell(tc.q, tc.r);
+        if (cell && cell.piecePlayerId === player.id) {
+          count++;
+        }
+      }
+      if (count === targetCells.length) {
+        return player;
+      }
+    }
     return null;
   }
 

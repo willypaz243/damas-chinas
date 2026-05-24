@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { GameEngine } from './game';
-import type { GameConfig, PlayerId } from './types';
+import type { GameConfig, PlayerId, HexCoord } from './types';
 
 const TEST_CONFIG: GameConfig = {
   playerCount: 2,
@@ -10,6 +10,18 @@ const TEST_CONFIG: GameConfig = {
   ],
   firstPlayerId: 1 as PlayerId,
 };
+
+function setPiece(engine: GameEngine, coord: HexCoord, playerId: PlayerId, color: string): void {
+  const key = `${coord.q},${coord.r}`;
+  const state = (engine as any).state;
+  state.board.set(key, { coord, pieceColor: color, piecePlayerId: playerId });
+}
+
+function clearCell(engine: GameEngine, coord: HexCoord): void {
+  const key = `${coord.q},${coord.r}`;
+  const state = (engine as any).state;
+  state.board.set(key, { coord, pieceColor: null, piecePlayerId: null });
+}
 
 describe('GameEngine', () => {
   let engine: GameEngine;
@@ -79,6 +91,38 @@ describe('GameEngine', () => {
     });
   });
 
+  describe('chain jumps', () => {
+    it('ficha debe poder saltar en cadena sobre dos piezas seguidas', () => {
+      const eng = new GameEngine(TEST_CONFIG);
+
+      clearCell(eng, { q: 0, r: 5 });
+      setPiece(eng, { q: 0, r: 2 }, 1 as PlayerId, '#e74c3c');
+      setPiece(eng, { q: 1, r: 1 }, 2 as PlayerId, '#3498db');
+      setPiece(eng, { q: 3, r: -1 }, 2 as PlayerId, '#3498db');
+
+      const result = eng.selectPiece({ q: 0, r: 2 });
+      expect(result.success).toBe(true);
+      const validKeys = result.validMoves!.map(c => `${c.q},${c.r}`);
+      expect(validKeys).toContain('2,0');
+      expect(validKeys).toContain('4,-2');
+    });
+
+    it('debe rechazar salto cuando la casilla destino intermedia está ocupada', () => {
+      const eng = new GameEngine(TEST_CONFIG);
+
+      clearCell(eng, { q: 0, r: 5 });
+      setPiece(eng, { q: 0, r: 2 }, 1 as PlayerId, '#e74c3c');
+      setPiece(eng, { q: 1, r: 1 }, 2 as PlayerId, '#3498db');
+      setPiece(eng, { q: 2, r: 0 }, 2 as PlayerId, '#3498db');
+
+      const result = eng.selectPiece({ q: 0, r: 2 });
+      const validKeys = result.validMoves!.map(c => `${c.q},${c.r}`);
+      expect(validKeys).not.toContain('2,0');
+      expect(validKeys).toContain('0,1');
+      expect(validKeys).toContain('1,2');
+    });
+  });
+
   describe('executeMove', () => {
     it('debe ejecutar un paso válido y mover la ficha', () => {
       const result = engine.executeMove({ q: -1, r: 5 }, { q: 0, r: 4 });
@@ -125,7 +169,63 @@ describe('GameEngine', () => {
     });
   });
 
-  describe('switchTurn', () => {
+  describe('checkVictory', () => {
+  it('debe detectar victoria cuando un jugador tiene todas sus fichas en zona objetivo', () => {
+    const eng = new GameEngine(TEST_CONFIG);
+    const board = eng.getState().board;
+    const northCells = Array.from(board.values()).filter(c => c.coord.r < -4);
+    expect(northCells).toHaveLength(10);
+
+    for (const cell of board.values()) {
+      if (cell.coord.r > 4) {
+        clearCell(eng, cell.coord);
+      }
+    }
+    for (let i = 0; i < northCells.length; i++) {
+      setPiece(eng, northCells[i].coord, 1 as PlayerId, '#e74c3c');
+    }
+
+    const winner = eng.checkVictory();
+    expect(winner).not.toBeNull();
+    expect(winner!.id).toBe(1);
+  });
+
+  it('debe retornar null cuando ningún jugador ha ganado', () => {
+    const result = engine.checkVictory();
+    expect(result).toBeNull();
+  });
+
+  it('debe detectar victoria del jugador 2', () => {
+    const eng = new GameEngine(TEST_CONFIG);
+    const board = eng.getState().board;
+    const southCells = Array.from(board.values()).filter(c => c.coord.r > 4);
+    expect(southCells).toHaveLength(10);
+
+    for (const cell of board.values()) {
+      if (cell.coord.r < -4) {
+        clearCell(eng, cell.coord);
+      }
+    }
+    for (let i = 0; i < southCells.length; i++) {
+      setPiece(eng, southCells[i].coord, 2 as PlayerId, '#3498db');
+    }
+
+    const winner = eng.checkVictory();
+    expect(winner).not.toBeNull();
+    expect(winner!.id).toBe(2);
+  });
+
+  it('debe retornar null con victoria parcial (menos de 10 fichas)', () => {
+    const eng = new GameEngine(TEST_CONFIG);
+    const c = Array.from(eng.getState().board.values()).find(c => c.coord.r < -4)!;
+    clearCell(eng, { q: -1, r: 5 });
+    setPiece(eng, c.coord, 1 as PlayerId, '#e74c3c');
+
+    expect(eng.checkVictory()).toBeNull();
+  });
+});
+
+describe('switchTurn', () => {
     it('debe alternar entre jugador 1 y 2', () => {
       engine.switchTurn();
       expect(engine.getState().currentPlayer.id).toBe(2);
@@ -159,6 +259,57 @@ describe('GameEngine', () => {
     it('debe empezar con el jugador 1', () => {
       const state = engine.getState();
       expect(state.currentPlayer.id).toBe(1);
+    });
+  });
+
+  describe('game over', () => {
+    it('debe marcar isGameOver cuando un jugador gana', () => {
+      const eng = new GameEngine(TEST_CONFIG);
+      const board = eng.getState().board;
+
+      for (const cell of board.values()) {
+        if (cell.coord.r < -4 || cell.coord.r > 4) {
+          clearCell(eng, cell.coord);
+        }
+      }
+      const northCells = Array.from(board.values()).filter(c => c.coord.r < -4);
+      const occupiedNorth = northCells.filter(c => !(c.coord.q === 1 && c.coord.r === -5));
+      for (const c of occupiedNorth) {
+        setPiece(eng, c.coord, 1 as PlayerId, '#e74c3c');
+      }
+      setPiece(eng, { q: 0, r: -4 }, 1 as PlayerId, '#e74c3c');
+
+      const moveResult = eng.executeMove({ q: 0, r: -4 }, { q: 1, r: -5 });
+      expect(moveResult.success).toBe(true);
+
+      const stateAfter = eng.getState();
+      expect(stateAfter.isGameOver).toBe(true);
+      expect(stateAfter.winner).not.toBeNull();
+      expect(stateAfter.winner!.id).toBe(1);
+    });
+
+    it('no debe cambiar de turno cuando el juego termina', () => {
+      const eng = new GameEngine(TEST_CONFIG);
+      const board = eng.getState().board;
+
+      for (const cell of board.values()) {
+        if (cell.coord.r < -4 || cell.coord.r > 4) {
+          clearCell(eng, cell.coord);
+        }
+      }
+      const northCells = Array.from(board.values()).filter(c => c.coord.r < -4);
+      const occupiedNorth = northCells.filter(c => !(c.coord.q === 1 && c.coord.r === -5));
+      for (const c of occupiedNorth) {
+        setPiece(eng, c.coord, 1 as PlayerId, '#e74c3c');
+      }
+      setPiece(eng, { q: 0, r: -4 }, 1 as PlayerId, '#e74c3c');
+
+      const currentPlayer = eng.getState().currentPlayer;
+      eng.executeMove({ q: 0, r: -4 }, { q: 1, r: -5 });
+
+      const stateAfter = eng.getState();
+      expect(stateAfter.currentPlayer.id).toBe(currentPlayer.id);
+      expect(stateAfter.isGameOver).toBe(true);
     });
   });
 });
