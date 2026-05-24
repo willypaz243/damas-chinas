@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react';
 import { Board } from './components/Board/Board';
+import { TurnIndicator } from './components/TurnIndicator/TurnIndicator';
 import { GameEngine } from './engine/game';
 import type { GameConfig, HexCoord, PlayerId } from './engine/types';
 
@@ -51,6 +52,7 @@ function App() {
   return (
     <main>
       <h1>Damas Chinas</h1>
+      <TurnIndicator currentPlayer={state.currentPlayer} />
       <Board
         hexSize={20}
         cells={state.board}
