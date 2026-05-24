@@ -262,7 +262,114 @@ describe('switchTurn', () => {
     });
   });
 
-  describe('game over', () => {
+  describe('undoLastMove', () => {
+  it('debe retornar false si no hay movimientos', () => {
+    expect(engine.undoLastMove()).toBe(false);
+  });
+
+  it('debe restaurar el estado anterior tras un movimiento', () => {
+    const stateBefore = engine.getState();
+    const p1countBefore = Array.from(stateBefore.board.values())
+      .filter(c => c.piecePlayerId === 1).length;
+
+    engine.executeMove({ q: -1, r: 5 }, { q: 0, r: 4 });
+
+    const result = engine.undoLastMove();
+    expect(result).toBe(true);
+
+    const stateAfter = engine.getState();
+    const p1countAfter = Array.from(stateAfter.board.values())
+      .filter(c => c.piecePlayerId === 1).length;
+    expect(p1countAfter).toBe(p1countBefore);
+    expect(stateAfter.moveHistory).toHaveLength(0);
+    expect(stateAfter.currentPlayer.id).toBe(1);
+  });
+
+  it('debe deshacer múltiples movimientos en orden inverso', () => {
+    engine.executeMove({ q: -1, r: 5 }, { q: 0, r: 4 });
+    engine.executeMove({ q: 3, r: -5 }, { q: 2, r: -4 });
+
+    expect(engine.getState().moveHistory).toHaveLength(2);
+    expect(engine.getState().currentPlayer.id).toBe(1);
+
+    engine.undoLastMove();
+    expect(engine.getState().moveHistory).toHaveLength(1);
+    expect(engine.getState().currentPlayer.id).toBe(2);
+
+    engine.undoLastMove();
+    expect(engine.getState().moveHistory).toHaveLength(0);
+    expect(engine.getState().currentPlayer.id).toBe(1);
+  });
+
+  it('debe permitir deshacer y luego seguir jugando', () => {
+    engine.executeMove({ q: -1, r: 5 }, { q: 0, r: 4 });
+    engine.undoLastMove();
+
+    const move2 = engine.executeMove({ q: -4, r: 5 }, { q: -3, r: 4 });
+    expect(move2.success).toBe(true);
+    expect(engine.getState().moveHistory).toHaveLength(1);
+  });
+
+  it('debe restaurar la ficha a su posición original', () => {
+    engine.executeMove({ q: -1, r: 5 }, { q: 0, r: 4 });
+    engine.undoLastMove();
+
+    const fromCell = engine.getState().board.get('-1,5');
+    const toCell = engine.getState().board.get('0,4');
+    expect(fromCell?.piecePlayerId).toBe(1);
+    expect(fromCell?.pieceColor).toBe('#e74c3c');
+    expect(toCell?.piecePlayerId).toBeNull();
+    expect(toCell?.pieceColor).toBeNull();
+  });
+
+  it('debe retornar false si el juego terminó', () => {
+    const eng = new GameEngine(TEST_CONFIG);
+    const board = eng.getState().board;
+    const northCells = Array.from(board.values()).filter(c => c.coord.r < -4);
+
+    for (const cell of board.values()) {
+      if (cell.coord.r < -4 || cell.coord.r > 4) {
+        clearCell(eng, cell.coord);
+      }
+    }
+    const occupiedNorth = northCells.filter(c => !(c.coord.q === 1 && c.coord.r === -5));
+    for (const c of occupiedNorth) {
+      setPiece(eng, c.coord, 1 as PlayerId, '#e74c3c');
+    }
+    setPiece(eng, { q: 0, r: -4 }, 1 as PlayerId, '#e74c3c');
+    eng.executeMove({ q: 0, r: -4 }, { q: 1, r: -5 });
+
+    expect(eng.getState().isGameOver).toBe(true);
+    expect(eng.undoLastMove()).toBe(false);
+  });
+});
+
+describe('reset', () => {
+  it('debe reiniciar el tablero con engine.reset()', () => {
+    engine.executeMove({ q: -1, r: 5 }, { q: 0, r: 4 });
+    engine.reset(TEST_CONFIG);
+    const state = engine.getState();
+    let player1Count = 0;
+    let player2Count = 0;
+    for (const [, cell] of state.board) {
+      if (cell.piecePlayerId === 1) player1Count++;
+      if (cell.piecePlayerId === 2) player2Count++;
+    }
+    expect(player1Count).toBe(10);
+    expect(player2Count).toBe(10);
+    expect(state.moveHistory).toHaveLength(0);
+    expect(state.isGameOver).toBe(false);
+    expect(state.currentPlayer.id).toBe(1);
+  });
+
+  it('debe limpiar el historial de snapshots tras reset', () => {
+    engine.executeMove({ q: -1, r: 5 }, { q: 0, r: 4 });
+    engine.reset(TEST_CONFIG);
+    expect(engine.undoLastMove()).toBe(false);
+  });
+});
+
+describe('game over', () => {
     it('debe marcar isGameOver cuando un jugador gana', () => {
       const eng = new GameEngine(TEST_CONFIG);
       const board = eng.getState().board;

@@ -5,10 +5,12 @@ export class GameEngine implements IGameEngine {
   private config: GameConfig;
   private state!: GameState;
   private board: HexBoard;
+  private snapshots: GameState[];
 
   constructor(config: GameConfig) {
     this.config = config;
     this.board = new HexBoard();
+    this.snapshots = [];
     this.state = this.buildInitialState();
   }
 
@@ -102,6 +104,35 @@ export class GameEngine implements IGameEngine {
     return this.board.getAllCells().filter(c => c.r > 4);
   }
 
+  private cloneBoard(board: Map<string, Cell>): Map<string, Cell> {
+    const clone = new Map<string, Cell>();
+    for (const [key, cell] of board) {
+      clone.set(key, { ...cell, coord: { ...cell.coord } });
+    }
+    return clone;
+  }
+
+  private saveSnapshot(): void {
+    this.snapshots.push({
+      board: this.cloneBoard(this.state.board),
+      players: this.state.players.map(p => ({ ...p })),
+      currentPlayer: { ...this.state.currentPlayer },
+      currentPlayerIndex: this.state.currentPlayerIndex,
+      moveHistory: this.state.moveHistory.map(m => ({
+        from: { ...m.from },
+        to: { ...m.to },
+        type: m.type,
+        player: { ...m.player },
+        turnNumber: m.turnNumber,
+        timestamp: m.timestamp,
+      })),
+      selectedPiece: this.state.selectedPiece ? { ...this.state.selectedPiece } : null,
+      validMoves: [...this.state.validMoves],
+      winner: this.state.winner ? { ...this.state.winner } : null,
+      isGameOver: this.state.isGameOver,
+    });
+  }
+
   private setSelection(coord: HexCoord | null, moves: HexCoord[]): void {
     this.state = { ...this.state, selectedPiece: coord, validMoves: moves };
   }
@@ -148,6 +179,8 @@ export class GameEngine implements IGameEngine {
     if (!this.isValidMove(from, to)) {
       return { success: false, error: 'invalid move' };
     }
+
+    this.saveSnapshot();
 
     const move: Move = {
       from,
@@ -222,7 +255,11 @@ export class GameEngine implements IGameEngine {
   }
 
   undoLastMove(): boolean {
-    return false;
+    if (this.state.isGameOver) return false;
+    if (this.snapshots.length === 0) return false;
+
+    this.state = this.snapshots.pop()!;
+    return true;
   }
 
   getConfig(): GameConfig {
@@ -236,6 +273,7 @@ export class GameEngine implements IGameEngine {
   reset(config: GameConfig): GameState {
     this.config = config;
     this.board = new HexBoard();
+    this.snapshots = [];
     this.state = this.buildInitialState();
     return this.state;
   }

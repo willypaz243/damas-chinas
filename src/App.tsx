@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react';
 import { Board } from './components/Board/Board';
 import { TurnIndicator } from './components/TurnIndicator/TurnIndicator';
+import { GameControls } from './components/GameControls/GameControls';
 import { VictoryModal } from './components/VictoryModal/VictoryModal';
 import { GameEngine } from './engine/game';
 import type { GameConfig, HexCoord, PlayerId } from './engine/types';
@@ -15,7 +16,7 @@ const GAME_CONFIG: GameConfig = {
 };
 
 export function useEngine() {
-  const [engine, setEngine] = useState(() => new GameEngine(GAME_CONFIG));
+  const [engine] = useState(() => new GameEngine(GAME_CONFIG));
   const [state, setState] = useState(() => engine.getState());
   const [selectedCell, setSelectedCell] = useState<HexCoord | null>(null);
   const [validMoves, setValidMoves] = useState<HexCoord[]>([]);
@@ -47,23 +48,40 @@ export function useEngine() {
   }, [engine, selectedCell, validMoves, state.isGameOver]);
 
   const handleReset = useCallback(() => {
-    const newEngine = new GameEngine(GAME_CONFIG);
-    setEngine(newEngine);
-    setState(newEngine.getState());
+    engine.reset(GAME_CONFIG);
+    setState(engine.getState());
     setSelectedCell(null);
     setValidMoves([]);
-  }, []);
+  }, [engine]);
 
-  return { state, selectedCell, validMoves, handleCellClick, handleReset };
+  const handleUndo = useCallback(() => {
+    const ok = engine.undoLastMove();
+    if (ok) {
+      setState(engine.getState());
+      setSelectedCell(null);
+      setValidMoves([]);
+    }
+  }, [engine]);
+
+  return {
+    state, selectedCell, validMoves,
+    handleCellClick, handleReset, handleUndo,
+  };
 }
 
 function App() {
-  const { state, selectedCell, validMoves, handleCellClick, handleReset } = useEngine();
+  const { state, selectedCell, validMoves, handleCellClick, handleReset, handleUndo } = useEngine();
 
   return (
     <main>
       <h1>Damas Chinas</h1>
       <TurnIndicator currentPlayer={state.currentPlayer} />
+      <GameControls
+        hasHistory={state.moveHistory.length > 0}
+        isGameOver={state.isGameOver}
+        onUndo={handleUndo}
+        onReset={handleReset}
+      />
       <Board
         hexSize={20}
         cells={state.board}
