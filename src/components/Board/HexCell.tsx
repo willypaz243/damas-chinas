@@ -1,3 +1,5 @@
+import { hexToPixel } from '../../engine/utils';
+
 interface HexCellProps {
   q: number;
   r: number;
@@ -9,12 +11,11 @@ interface HexCellProps {
 }
 
 export function HexCell({ q, r, size, fill = '#f0f0f0', stroke = '#bbb', strokeWidth = 0.5, onClick }: HexCellProps) {
-  const cx = size * Math.sqrt(3) * (q + r / 2);
-  const cy = size * 1.5 * r;
+  const { x, y } = hexToPixel(q, r, size);
 
   const points = Array.from({ length: 6 }, (_, i) => {
     const angle = ((60 * i - 90) * Math.PI) / 180;
-    return `${cx + size * Math.cos(angle)},${cy + size * Math.sin(angle)}`;
+    return `${x + size * Math.cos(angle)},${y + size * Math.sin(angle)}`;
   }).join(' ');
 
   return (
