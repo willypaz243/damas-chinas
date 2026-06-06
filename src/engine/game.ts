@@ -2,6 +2,7 @@ import type { GameConfig, GameEngine as IGameEngine, GameState, HexCoord, Cell, 
 import { HexBoard } from './board';
 import { cellKey } from './utils';
 import { TRIANGLE_CUTOFF } from './constants';
+import { JumpChainFinder } from './jump-chain';
 
 export class GameEngine implements IGameEngine {
   private config: GameConfig;
@@ -68,30 +69,12 @@ export class GameEngine implements IGameEngine {
       });
   }
 
-  private getJumpMovesFrom(coord: HexCoord, visited: Set<string> = new Set()): HexCoord[] {
-    const jumps: HexCoord[] = [];
-    const key = cellKey(coord.q, coord.r);
-    if (visited.has(key)) return jumps;
-    visited = new Set(visited);
-    visited.add(key);
-
-    const neighbors = this.board.getNeighbors(coord.q, coord.r);
-
-    for (const n of neighbors) {
-      const nCell = this.getCell(n.q, n.r);
-      if (!nCell || nCell.pieceColor === null) continue;
-
-      const dq = n.q - coord.q;
-      const dr = n.r - coord.r;
-      const beyond: HexCoord = { q: n.q + dq, r: n.r + dr };
-      const bCell = this.getCell(beyond.q, beyond.r);
-      if (bCell && bCell.pieceColor === null) {
-        jumps.push(beyond);
-        jumps.push(...this.getJumpMovesFrom(beyond, visited));
-      }
-    }
-
-    return jumps;
+  private getJumpMovesFrom(coord: HexCoord): HexCoord[] {
+    const provider = {
+      getPiece: (q: number, r: number) => this.getCell(q, r)?.piecePlayerId ?? null,
+      hasCell: (q: number, r: number) => this.board.hasCell(q, r),
+    };
+    return new JumpChainFinder(provider).find(coord, (q, r) => this.board.getNeighbors(q, r));
   }
 
   getValidMoves(coord: HexCoord): HexCoord[] {

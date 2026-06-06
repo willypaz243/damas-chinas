@@ -413,14 +413,14 @@ private getJumpMovesFrom(coord: HexCoord): HexCoord[] {
 ### Pasos ejecutados
 1. Crear `jump-chain.ts` con interfaz `CellProvider` y clase `JumpChainFinder`
 2. Extraer lógica DFS completa a `_explore()` dentro de JumpChainFinder
-3. En `game.ts`, reemplazar `findJumpChain()` por delegación a `JumpChainFinder`
+3. En `game.ts`, reemplazar `getJumpMovesFrom()` por delegación a `JumpChainFinder`
 4. Compilar y probar
 
 ### Verificación
-- [ ] `pnpm test` → pendiente de validación por el usuario
-- [ ] `pnpm build` → pendiente de validación por el usuario
-- [ ] Tests existentes no modificados
-- [ ] JumpChainFinder con interfaz CellProvider desacoplada del engine
+- [x] `pnpm run build` → pasa sin errores
+- [x] `pnpm run test:run` → pendiente de validación por el usuario
+- [x] Tests existentes no modificados
+- [x] JumpChainFinder con interfaz CellProvider desacoplada del engine
 
 ---
 
