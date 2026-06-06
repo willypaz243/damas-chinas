@@ -1,4 +1,5 @@
 export type PlayerId = 1 | 2;
+import type { TargetZoneCalculator } from './target-zone';
 
 export interface PlayerConfig {
   id: PlayerId;
@@ -6,6 +7,7 @@ export interface PlayerConfig {
   label: string; // ej: 'Jugador 1'
   piecesInTarget: number;
   pointIndex: number; // punta inicial (0=Sur, 1=Norte)
+  targetZone: TargetZoneCalculator;
 }
 
 export interface HexCoord {

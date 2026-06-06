@@ -5,12 +5,13 @@ import { GameControls } from './components/GameControls/GameControls';
 import { VictoryModal } from './components/VictoryModal/VictoryModal';
 import { GameEngine } from './engine/game';
 import type { GameConfig, HexCoord, PlayerId } from './engine/types';
+import { SouthTargetZone, NorthTargetZone } from './engine/target-zone';
 
 const GAME_CONFIG: GameConfig = {
   playerCount: 2,
   players: [
-    { id: 1 as PlayerId, color: '#e74c3c', label: 'Jugador 1', piecesInTarget: 0, pointIndex: 0 },
-    { id: 2 as PlayerId, color: '#3498db', label: 'Jugador 2', piecesInTarget: 0, pointIndex: 1 },
+    { id: 1 as PlayerId, color: '#e74c3c', label: 'Jugador 1', piecesInTarget: 0, pointIndex: 0, targetZone: new SouthTargetZone() },
+    { id: 2 as PlayerId, color: '#3498db', label: 'Jugador 2', piecesInTarget: 0, pointIndex: 1, targetZone: new NorthTargetZone() },
   ],
   firstPlayerId: 1 as PlayerId,
 };

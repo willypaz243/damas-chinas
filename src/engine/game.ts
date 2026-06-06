@@ -103,10 +103,7 @@ export class GameEngine implements IGameEngine {
   }
 
   private getTargetZoneCells(player: PlayerConfig): HexCoord[] {
-    if (player.pointIndex === 0) {
-      return this.board.getAllCells().filter(c => c.r < -TRIANGLE_CUTOFF);
-    }
-    return this.board.getAllCells().filter(c => c.r > TRIANGLE_CUTOFF);
+    return player.targetZone.calculate(this.board.getAllCells());
   }
 
   private cloneBoard(board: Map<string, Cell>): Map<string, Cell> {

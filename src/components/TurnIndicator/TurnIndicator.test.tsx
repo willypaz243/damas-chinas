@@ -3,6 +3,7 @@ import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { TurnIndicator } from './TurnIndicator';
 import type { PlayerConfig, PlayerId } from '../../engine/types';
+import { SouthTargetZone, NorthTargetZone } from '../../engine/target-zone';
 
 describe('TurnIndicator', () => {
   const player1: PlayerConfig = {
@@ -11,6 +12,7 @@ describe('TurnIndicator', () => {
     label: 'Jugador 1',
     piecesInTarget: 0,
     pointIndex: 0,
+    targetZone: new SouthTargetZone(),
   };
 
   const player2: PlayerConfig = {
@@ -19,6 +21,7 @@ describe('TurnIndicator', () => {
     label: 'Jugador 2',
     piecesInTarget: 0,
     pointIndex: 1,
+    targetZone: new NorthTargetZone(),
   };
 
   it('debe mostrar el nombre del jugador actual', () => {

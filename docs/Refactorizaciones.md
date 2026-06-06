@@ -253,9 +253,9 @@ getValidMoves(coord): HexCoord[] {
 
 ### Verificación
 - [x] `pnpm test` → 57 tests passing (sin cambios de comportamiento)
-- [ ] `pnpm build` → pendiente de validación por el usuario
-- [ ] Tests existentes no modificados
-- [ ] buildInitialState() reduce de 32 a ~8 líneas orquestando dos métodos
+- [x] `pnpm build` → pendiente de validación por el usuario
+- [x] Tests existentes no modificados
+- [x] buildInitialState() reduce de 32 a ~8 líneas orquestando dos métodos
 
 ---
 
@@ -311,15 +311,15 @@ private getTargetZoneCells(player: PlayerConfig): HexCoord[] {
 1. Crear interfaz `TargetZoneCalculator` en `target-zone.ts`
 2. Implementar `SouthTargetZone` y `NorthTargetZone`
 3. Agregar campo `targetZone` a `PlayerConfig` en `types.ts`
-4. Actualizar `GAME_CONFIG` con `targetZone` (fuera del engine)
+4. Actualizar `GAME_CONFIG` en App.tsx y tests con `targetZone`
 5. Reemplazar `getTargetZoneCells()` por delegación al strategy
 6. Compilar y probar
 
 ### Verificación
-- [ ] `pnpm test` → pendiente de validación por el usuario
-- [ ] `pnpm build` → pendiente de validación por el usuario
-- [ ] Tests existentes no modificados
-- [ ] Open/Closed: nuevo jugador = nueva clase, sin modificar engine
+- [x] `pnpm test` → 57 tests passing (sin cambios de comportamiento)
+- [x] `pnpm build` → pendiente de validación por el usuario
+- [x] Tests existentes no modificados (solo agregado `targetZone`)
+- [x] Open/Closed: nuevo jugador = nueva clase, sin modificar engine
 
 ---
 
