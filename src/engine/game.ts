@@ -1,6 +1,7 @@
 import type { GameConfig, GameEngine as IGameEngine, GameState, HexCoord, Cell, PlayerConfig, SelectionResult, MoveResult, Move } from './types';
 import { HexBoard } from './board';
 import { cellKey } from './utils';
+import { TRIANGLE_CUTOFF } from './constants';
 
 export class GameEngine implements IGameEngine {
   private config: GameConfig;
@@ -25,9 +26,9 @@ export class GameEngine implements IGameEngine {
     for (const player of this.config.players) {
       const isSouth = player.pointIndex === 0;
       for (const { q, r } of this.board.getAllCells()) {
-        if (isSouth && r > 4) {
+        if (isSouth && r > TRIANGLE_CUTOFF) {
           board.set(`${q},${r}`, { coord: { q, r }, pieceColor: player.color, piecePlayerId: player.id });
-        } else if (!isSouth && r < -4) {
+        } else if (!isSouth && r < -TRIANGLE_CUTOFF) {
           board.set(`${q},${r}`, { coord: { q, r }, pieceColor: player.color, piecePlayerId: player.id });
         }
       }
@@ -96,9 +97,9 @@ export class GameEngine implements IGameEngine {
 
   private getTargetZoneCells(player: PlayerConfig): HexCoord[] {
     if (player.pointIndex === 0) {
-      return this.board.getAllCells().filter(c => c.r < -4);
+      return this.board.getAllCells().filter(c => c.r < -TRIANGLE_CUTOFF);
     }
-    return this.board.getAllCells().filter(c => c.r > 4);
+    return this.board.getAllCells().filter(c => c.r > TRIANGLE_CUTOFF);
   }
 
   private cloneBoard(board: Map<string, Cell>): Map<string, Cell> {
