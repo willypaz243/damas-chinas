@@ -4,7 +4,7 @@ import { TurnIndicator } from './components/TurnIndicator/TurnIndicator';
 import { GameControls } from './components/GameControls/GameControls';
 import { VictoryModal } from './components/VictoryModal/VictoryModal';
 import { GameEngine } from './engine/game';
-import type { GameConfig, HexCoord, PlayerId } from './engine/types';
+import type { GameConfig, HexCoord, PlayerId, GameEngine as IGameEngine } from './engine/types';
 import { SouthTargetZone, NorthTargetZone } from './engine/target-zone';
 
 const GAME_CONFIG: GameConfig = {
@@ -17,7 +17,7 @@ const GAME_CONFIG: GameConfig = {
 };
 
 export function useEngine() {
-  const [engine] = useState(() => new GameEngine(GAME_CONFIG));
+  const [engine] = useState<IGameEngine>(() => new GameEngine(GAME_CONFIG));
   const [state, setState] = useState(() => engine.getState());
   const [selectedCell, setSelectedCell] = useState<HexCoord | null>(null);
   const [validMoves, setValidMoves] = useState<HexCoord[]>([]);
