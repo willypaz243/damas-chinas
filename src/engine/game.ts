@@ -1,5 +1,6 @@
 import type { GameConfig, GameEngine as IGameEngine, GameState, HexCoord, Cell, PlayerConfig, SelectionResult, MoveResult, Move } from './types';
 import { HexBoard } from './board';
+import { cellKey } from './utils';
 
 export class GameEngine implements IGameEngine {
   private config: GameConfig;
@@ -12,10 +13,6 @@ export class GameEngine implements IGameEngine {
     this.board = new HexBoard();
     this.snapshots = [];
     this.state = this.buildInitialState();
-  }
-
-  private cellKey(q: number, r: number): string {
-    return `${q},${r}`;
   }
 
   private buildInitialState(): GameState {
@@ -52,7 +49,7 @@ export class GameEngine implements IGameEngine {
   }
 
   private getCell(q: number, r: number): Cell | undefined {
-    return this.state.board.get(this.cellKey(q, r));
+    return this.state.board.get(cellKey(q, r));
   }
 
   private getStepMoves(coord: HexCoord): HexCoord[] {
@@ -65,7 +62,7 @@ export class GameEngine implements IGameEngine {
 
   private findJumpChain(coord: HexCoord, visited: Set<string> = new Set()): HexCoord[] {
     const jumps: HexCoord[] = [];
-    const key = this.cellKey(coord.q, coord.r);
+    const key = cellKey(coord.q, coord.r);
     if (visited.has(key)) return jumps;
     visited = new Set(visited);
     visited.add(key);
@@ -194,12 +191,12 @@ export class GameEngine implements IGameEngine {
     };
 
     const newBoard = new Map(this.state.board);
-    newBoard.set(this.cellKey(from.q, from.r), {
+    newBoard.set(cellKey(from.q, from.r), {
       coord: from,
       pieceColor: null,
       piecePlayerId: null,
     });
-    newBoard.set(this.cellKey(to.q, to.r), {
+    newBoard.set(cellKey(to.q, to.r), {
       coord: to,
       pieceColor: fromCell.pieceColor,
       piecePlayerId: fromCell.piecePlayerId,

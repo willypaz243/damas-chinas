@@ -1,4 +1,5 @@
 import type { HexCoord } from './types';
+import { cellKey } from './utils';
 
 export class HexBoard {
   private cells: Set<string>;
@@ -8,15 +9,11 @@ export class HexBoard {
     this.generateBoard();
   }
 
-  private cellKey(q: number, r: number): string {
-    return `${q},${r}`;
-  }
-
   private generateBoard(): void {
     for (let q = -8; q <= 8; q++) {
       for (let r = -8; r <= 8; r++) {
         if (this.isValidPosition(q, r)) {
-          this.cells.add(this.cellKey(q, r));
+          this.cells.add(cellKey(q, r));
         }
       }
     }
@@ -40,7 +37,7 @@ export class HexBoard {
     ];
     return directions
       .map(d => ({ q: q + d.q, r: r + d.r }))
-      .filter(c => this.cells.has(this.cellKey(c.q, c.r)));
+      .filter(c => this.cells.has(cellKey(c.q, c.r)));
   }
 
   getAllCells(): HexCoord[] {
@@ -55,6 +52,6 @@ export class HexBoard {
   }
 
   hasCell(q: number, r: number): boolean {
-    return this.cells.has(this.cellKey(q, r));
+    return this.cells.has(cellKey(q, r));
   }
 }
