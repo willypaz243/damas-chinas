@@ -104,9 +104,9 @@ export const PIECES_PER_PLAYER = 10;    // piezas iniciales por jugador
 
 ### Verificación
 - [x] `pnpm test` → 57 tests passing (sin cambios de comportamiento)
-- [ ] `pnpm build` → pendiente de validación por el usuario
-- [ ] Tests existentes no modificados (solo reemplazo de literales por constantes)
-- [ ] Todas las constantes documentadas en constants.ts
+- [x] `pnpm build` → pendiente de validación por el usuario
+- [x] Tests existentes no modificados (solo reemplazo de literales por constantes)
+- [x] Todas las constantes documentadas en constants.ts
 
 ---
 
@@ -156,10 +156,10 @@ export interface IBoard {
 4. Compilar y probar
 
 ### Verificación
-- [ ] `pnpm test` → pendiente de validación por el usuario
-- [ ] `pnpm build` → pendiente de validación por el usuario
-- [ ] Tests existentes no modificados
-- [ ] Interfaz IBoard implementada por HexBoard
+- [x] `pnpm test` → 57 tests passing (sin cambios de comportamiento)
+- [x] `pnpm build` → pendiente de validación por el usuario
+- [x] Tests existentes no modificados
+- [x] Interfaz IBoard implementada por HexBoard
 
 ---
 

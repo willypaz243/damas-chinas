@@ -13,6 +13,14 @@ export interface HexCoord {
   r: number;
 }
 
+export interface IBoard {
+  isValidPosition(q: number, r: number): boolean;
+  getNeighbors(q: number, r: number): HexCoord[];
+  getAllCells(): HexCoord[];
+  getCellsCount(): number;
+  hasCell(q: number, r: number): boolean;
+}
+
 export interface Cell {
   coord: HexCoord;
   pieceColor: string | null;

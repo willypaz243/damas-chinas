@@ -1,8 +1,8 @@
-import type { HexCoord } from './types';
+import type { HexCoord, IBoard } from './types';
 import { cellKey } from './utils';
 import { BOARD_COORD_MAX, TRIANGLE_CUTOFF } from './constants';
 
-export class HexBoard {
+export class HexBoard implements IBoard {
   private cells: Set<string>;
 
   constructor() {

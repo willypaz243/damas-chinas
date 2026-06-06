@@ -1,4 +1,4 @@
-import type { GameConfig, GameEngine as IGameEngine, GameState, HexCoord, Cell, PlayerConfig, SelectionResult, MoveResult, Move } from './types';
+import type { GameConfig, GameEngine as IGameEngine, GameState, HexCoord, Cell, PlayerConfig, SelectionResult, MoveResult, Move, IBoard } from './types';
 import { HexBoard } from './board';
 import { cellKey } from './utils';
 import { TRIANGLE_CUTOFF } from './constants';
@@ -6,7 +6,7 @@ import { TRIANGLE_CUTOFF } from './constants';
 export class GameEngine implements IGameEngine {
   private config: GameConfig;
   private state!: GameState;
-  private board: HexBoard;
+  private board: IBoard;
   private snapshots: GameState[];
 
   constructor(config: GameConfig) {
