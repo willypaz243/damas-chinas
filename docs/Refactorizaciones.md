@@ -585,9 +585,58 @@ export interface IGameEngine {
 
 ## Verificación final
 
-- [ ] `pnpm test` → 57 tests passing (sin cambios de comportamiento)
-- [ ] `pnpm build` → sin errores TypeScript
-- [ ] Todos los archivos nuevos creados en `src/engine/`
-- [ ] Tests existentes no modificados
-- [ ] Interfaz IBoard implementada por HexBoard
-- [ ] Interfaz IGameEngine implementada por GameEngine
+- [x] `pnpm test` → 57 tests passing (sin cambios de comportamiento)
+- [x] `pnpm build` → sin errores TypeScript
+- [x] Todos los archivos nuevos creados en `src/engine/`
+- [x] Tests existentes no modificados
+- [x] Interfaz IBoard implementada por HexBoard
+- [x] Interfaz IGameEngine implementada por GameEngine
+
+---
+
+## Refactorización adicional: Extract Component → useEngine + GAME_CONFIG
+
+### Técnica utilizada
+**Extract Method** (para el hook) + **Move Declarations** (para la constante) — [Martin Fowler Catalog](https://martinfowler.com/refactoring/catalog/)
+
+### Problema identificado
+`App.tsx` mezclaba 3 responsabilidades: (1) constante `GAME_CONFIG`, (2) hook `useEngine`, (3) componente React `App`. Esto generaba el error de Vite: *"Fast refresh only works when a file only exports components"*.
+
+### Código antes
+```tsx
+// App.tsx — 104 líneas con 3 responsabilidades mezcladas
+import { useState, useCallback } from 'react';
+import { GameEngine } from './engine/game';
+import type { GameConfig, HexCoord, PlayerId, GameEngine as IGameEngine } from './engine/types';
+import { SouthTargetZone, NorthTargetZone } from './engine/target-zone';
+
+const GAME_CONFIG: GameConfig = { ... };  // ← constante (no componente)
+
+export function useEngine() { ... }       // ← hook (no componente)
+
+function App() { ... }                     // ← solo esto es componente
+```
+
+### Código después
+```tsx
+// hooks/useEngine.ts — hook + configuración
+export const GAME_CONFIG: GameConfig = { ... };
+export function useEngine() { ... }
+
+// App.tsx — solo el componente (14 líneas)
+import { useEngine } from './hooks/useEngine';
+function App() { ... }
+export default App;
+```
+
+### Pasos ejecutados
+1. Crear `src/hooks/useEngine.ts` con `GAME_CONFIG` + `useEngine()`
+2. Mover imports de `GameEngine`, tipos, y zonas objetivo a `useEngine.ts`
+3. Simplificar `App.tsx` para importar solo `useEngine` desde hooks
+4. Compilar y probar
+
+### Verificación
+- [x] `pnpm run build` → pasa sin errores
+- [x] `pnpm run test:run` → 57 tests passing
+- [x] Fast Refresh → pendiente de validación en dev server
+- [x] `App.tsx` ahora solo exporta un componente (corrige error de Vite)
