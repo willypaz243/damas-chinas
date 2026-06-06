@@ -3,9 +3,11 @@ import { TurnIndicator } from './components/TurnIndicator/TurnIndicator';
 import { GameControls } from './components/GameControls/GameControls';
 import { VictoryModal } from './components/VictoryModal/VictoryModal';
 import { useEngine } from './hooks/useEngine';
+import { useBoardSize } from './hooks/useBoardSize';
 
 function App() {
   const { state, selectedCell, validMoves, handleCellClick, handleReset, handleUndo } = useEngine();
+  const hexSize = useBoardSize();
 
   return (
     <main>
@@ -17,13 +19,15 @@ function App() {
         onUndo={handleUndo}
         onReset={handleReset}
       />
-      <Board
-        hexSize={20}
-        cells={state.board}
-        selectedCell={selectedCell}
-        validMoves={validMoves}
-        onCellClick={handleCellClick}
-      />
+      <div className="boardContainer">
+        <Board
+          hexSize={hexSize}
+          cells={state.board}
+          selectedCell={selectedCell}
+          validMoves={validMoves}
+          onCellClick={handleCellClick}
+        />
+      </div>
       {state.isGameOver && state.winner && (
         <VictoryModal
           winnerLabel={state.winner.label}

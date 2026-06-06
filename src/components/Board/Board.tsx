@@ -19,7 +19,8 @@ function isSameCoord(a: HexCoord, b: HexCoord): boolean {
   return a.q === b.q && a.r === b.r;
 }
 
-const MOVE_DOT_RADIUS_RATIO = 0.15;
+const MOVE_DOT_RADIUS_RATIO = 0.25;
+const MOVE_DOT_STROKE_WIDTH = 1.5;
 
 export function Board({ hexSize = 16, cellFill, onCellClick, cells, selectedCell, validMoves }: BoardProps) {
   const size = hexSize;
@@ -74,16 +75,30 @@ export function Board({ hexSize = 16, cellFill, onCellClick, cells, selectedCell
       {validMoves && board.getAllCells().map(({ q, r }) => {
         if (!validSet.has(`${q},${r}`)) return null;
         const { x, y } = hexToPixel(q, r, size);
+        const dotRadius = size * MOVE_DOT_RADIUS_RATIO;
         return (
-          <circle
-            key={`move-${q},${r}`}
-            cx={x}
-            cy={y}
-            r={size * MOVE_DOT_RADIUS_RATIO}
-            fill="#2ecc71"
-            opacity={0.7}
-            pointerEvents="none"
-          />
+          <g key={`move-${q},${r}`}>
+            <circle
+              cx={x}
+              cy={y}
+              r={dotRadius + MOVE_DOT_STROKE_WIDTH}
+              fill="transparent"
+              stroke="#27ae60"
+              strokeWidth={MOVE_DOT_STROKE_WIDTH * 2}
+              opacity={0.5}
+              pointerEvents="none"
+            />
+            <circle
+              cx={x}
+              cy={y}
+              r={dotRadius}
+              fill="#2ecc71"
+              stroke="#fff"
+              strokeWidth={MOVE_DOT_STROKE_WIDTH}
+              opacity={0.95}
+              pointerEvents="none"
+            />
+          </g>
         );
       })}
     </svg>
