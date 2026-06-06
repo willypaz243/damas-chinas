@@ -1,6 +1,8 @@
-import type { HexCoord } from './types';
+import type { HexCoord, IBoard } from './types';
+import { cellKey } from './utils';
+import { BOARD_COORD_MAX, TRIANGLE_CUTOFF } from './constants';
 
-export class HexBoard {
+export class HexBoard implements IBoard {
   private cells: Set<string>;
 
   constructor() {
@@ -8,15 +10,11 @@ export class HexBoard {
     this.generateBoard();
   }
 
-  private cellKey(q: number, r: number): string {
-    return `${q},${r}`;
-  }
-
   private generateBoard(): void {
-    for (let q = -8; q <= 8; q++) {
-      for (let r = -8; r <= 8; r++) {
+    for (let q = -BOARD_COORD_MAX; q <= BOARD_COORD_MAX; q++) {
+      for (let r = -BOARD_COORD_MAX; r <= BOARD_COORD_MAX; r++) {
         if (this.isValidPosition(q, r)) {
-          this.cells.add(this.cellKey(q, r));
+          this.cells.add(cellKey(q, r));
         }
       }
     }
@@ -24,9 +22,9 @@ export class HexBoard {
 
   isValidPosition(q: number, r: number): boolean {
     const s = -q - r;
-    if (Math.abs(q) > 8 || Math.abs(r) > 8 || Math.abs(s) > 8) return false;
+    if (Math.abs(q) > BOARD_COORD_MAX || Math.abs(r) > BOARD_COORD_MAX || Math.abs(s) > BOARD_COORD_MAX) return false;
     const coords = [Math.abs(q), Math.abs(r), Math.abs(s)];
-    return coords.filter(c => c > 4).length <= 1;
+    return coords.filter(c => c > TRIANGLE_CUTOFF).length <= 1;
   }
 
   getNeighbors(q: number, r: number): HexCoord[] {
@@ -40,7 +38,7 @@ export class HexBoard {
     ];
     return directions
       .map(d => ({ q: q + d.q, r: r + d.r }))
-      .filter(c => this.cells.has(this.cellKey(c.q, c.r)));
+      .filter(c => this.cells.has(cellKey(c.q, c.r)));
   }
 
   getAllCells(): HexCoord[] {
@@ -55,6 +53,6 @@ export class HexBoard {
   }
 
   hasCell(q: number, r: number): boolean {
-    return this.cells.has(this.cellKey(q, r));
+    return this.cells.has(cellKey(q, r));
   }
 }

@@ -4,3 +4,7 @@ export function hexToPixel(q: number, r: number, size: number): { x: number; y: 
     y: size * 1.5 * r,
   };
 }
+
+export function cellKey(q: number, r: number): string {
+  return `${q},${r}`;
+}

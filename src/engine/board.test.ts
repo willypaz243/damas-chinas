@@ -1,11 +1,12 @@
 import { describe, it, expect } from 'vitest';
 import type { HexCoord } from './types';
 import { HexBoard } from './board';
+import { TOTAL_BOARD_SIZE } from './constants';
 
 describe('HexBoard', () => {
-  it('debe tener exactamente 121 casillas', () => {
+  it('debe tener exactamente TOTAL_BOARD_SIZE casillas', () => {
     const board = new HexBoard();
-    expect(board.getCellsCount()).toBe(121);
+    expect(board.getCellsCount()).toBe(TOTAL_BOARD_SIZE);
   });
 
   it('debe validar el centro (0,0)', () => {
@@ -64,7 +65,7 @@ describe('HexBoard', () => {
   it('debe devolver todas las casillas como HexCoord', () => {
     const board = new HexBoard();
     const allCells = board.getAllCells();
-    expect(allCells).toHaveLength(121);
+    expect(allCells).toHaveLength(TOTAL_BOARD_SIZE);
     expect(allCells[0]).toHaveProperty('q');
     expect(allCells[0]).toHaveProperty('r');
   });

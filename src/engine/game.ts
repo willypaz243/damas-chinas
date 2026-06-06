@@ -1,10 +1,13 @@
-import type { GameConfig, GameEngine as IGameEngine, GameState, HexCoord, Cell, PlayerConfig, SelectionResult, MoveResult, Move } from './types';
+import type { GameConfig, GameEngine as IGameEngine, GameState, HexCoord, Cell, PlayerConfig, SelectionResult, MoveResult, Move, IBoard } from './types';
 import { HexBoard } from './board';
+import { cellKey } from './utils';
+import { TRIANGLE_CUTOFF } from './constants';
+import { JumpChainFinder } from './jump-chain';
 
 export class GameEngine implements IGameEngine {
   private config: GameConfig;
   private state!: GameState;
-  private board: HexBoard;
+  private board: IBoard;
   private snapshots: GameState[];
 
   constructor(config: GameConfig) {
@@ -14,27 +17,9 @@ export class GameEngine implements IGameEngine {
     this.state = this.buildInitialState();
   }
 
-  private cellKey(q: number, r: number): string {
-    return `${q},${r}`;
-  }
-
   private buildInitialState(): GameState {
-    const board = new Map<string, Cell>();
-    for (const { q, r } of this.board.getAllCells()) {
-      const coord = { q, r };
-      board.set(`${q},${r}`, { coord, pieceColor: null, piecePlayerId: null });
-    }
-
-    for (const player of this.config.players) {
-      const isSouth = player.pointIndex === 0;
-      for (const { q, r } of this.board.getAllCells()) {
-        if (isSouth && r > 4) {
-          board.set(`${q},${r}`, { coord: { q, r }, pieceColor: player.color, piecePlayerId: player.id });
-        } else if (!isSouth && r < -4) {
-          board.set(`${q},${r}`, { coord: { q, r }, pieceColor: player.color, piecePlayerId: player.id });
-        }
-      }
-    }
+    const board = this.buildEmptyBoard();
+    this.placeInitialPieces(board);
 
     const firstPlayer = this.config.players.find(p => p.id === this.config.firstPlayerId)!;
 
@@ -51,11 +36,32 @@ export class GameEngine implements IGameEngine {
     };
   }
 
-  private getCell(q: number, r: number): Cell | undefined {
-    return this.state.board.get(this.cellKey(q, r));
+  private buildEmptyBoard(): Map<string, Cell> {
+    const board = new Map<string, Cell>();
+    for (const { q, r } of this.board.getAllCells()) {
+      board.set(cellKey(q, r), { coord: { q, r }, pieceColor: null, piecePlayerId: null });
+    }
+    return board;
   }
 
-  private getStepMoves(coord: HexCoord): HexCoord[] {
+  private placeInitialPieces(board: Map<string, Cell>): void {
+    for (const player of this.config.players) {
+      const isSouth = player.pointIndex === 0;
+      for (const { q, r } of this.board.getAllCells()) {
+        if (isSouth && r > TRIANGLE_CUTOFF) {
+          board.set(cellKey(q, r), { coord: { q, r }, pieceColor: player.color, piecePlayerId: player.id });
+        } else if (!isSouth && r < -TRIANGLE_CUTOFF) {
+          board.set(cellKey(q, r), { coord: { q, r }, pieceColor: player.color, piecePlayerId: player.id });
+        }
+      }
+    }
+  }
+
+  private getCell(q: number, r: number): Cell | undefined {
+    return this.state.board.get(cellKey(q, r));
+  }
+
+  private getStepMovesFrom(coord: HexCoord): HexCoord[] {
     return this.board.getNeighbors(coord.q, coord.r)
       .filter(n => {
         const cell = this.getCell(n.q, n.r);
@@ -63,30 +69,12 @@ export class GameEngine implements IGameEngine {
       });
   }
 
-  private findJumpChain(coord: HexCoord, visited: Set<string> = new Set()): HexCoord[] {
-    const jumps: HexCoord[] = [];
-    const key = this.cellKey(coord.q, coord.r);
-    if (visited.has(key)) return jumps;
-    visited = new Set(visited);
-    visited.add(key);
-
-    const neighbors = this.board.getNeighbors(coord.q, coord.r);
-
-    for (const n of neighbors) {
-      const nCell = this.getCell(n.q, n.r);
-      if (!nCell || nCell.pieceColor === null) continue;
-
-      const dq = n.q - coord.q;
-      const dr = n.r - coord.r;
-      const beyond: HexCoord = { q: n.q + dq, r: n.r + dr };
-      const bCell = this.getCell(beyond.q, beyond.r);
-      if (bCell && bCell.pieceColor === null) {
-        jumps.push(beyond);
-        jumps.push(...this.findJumpChain(beyond, visited));
-      }
-    }
-
-    return jumps;
+  private getJumpMovesFrom(coord: HexCoord): HexCoord[] {
+    const provider = {
+      getPiece: (q: number, r: number) => this.getCell(q, r)?.piecePlayerId ?? null,
+      hasCell: (q: number, r: number) => this.board.hasCell(q, r),
+    };
+    return new JumpChainFinder(provider).find(coord, (q, r) => this.board.getNeighbors(q, r));
   }
 
   getValidMoves(coord: HexCoord): HexCoord[] {
@@ -94,14 +82,11 @@ export class GameEngine implements IGameEngine {
     const cell = this.getCell(coord.q, coord.r);
     if (!cell || cell.pieceColor === null) return [];
 
-    return [...this.getStepMoves(coord), ...this.findJumpChain(coord)];
+    return [...this.getStepMovesFrom(coord), ...this.getJumpMovesFrom(coord)];
   }
 
   private getTargetZoneCells(player: PlayerConfig): HexCoord[] {
-    if (player.pointIndex === 0) {
-      return this.board.getAllCells().filter(c => c.r < -4);
-    }
-    return this.board.getAllCells().filter(c => c.r > 4);
+    return player.targetZone.calculate(this.board.getAllCells());
   }
 
   private cloneBoard(board: Map<string, Cell>): Map<string, Cell> {
@@ -112,8 +97,8 @@ export class GameEngine implements IGameEngine {
     return clone;
   }
 
-  private saveSnapshot(): void {
-    this.snapshots.push({
+  private createSnapshot(): GameState {
+    return {
       board: this.cloneBoard(this.state.board),
       players: this.state.players.map(p => ({ ...p })),
       currentPlayer: { ...this.state.currentPlayer },
@@ -130,7 +115,11 @@ export class GameEngine implements IGameEngine {
       validMoves: [...this.state.validMoves],
       winner: this.state.winner ? { ...this.state.winner } : null,
       isGameOver: this.state.isGameOver,
-    });
+    };
+  }
+
+  private saveSnapshot(): void {
+    this.snapshots.push(this.createSnapshot());
   }
 
   private setSelection(coord: HexCoord | null, moves: HexCoord[]): void {
@@ -194,12 +183,12 @@ export class GameEngine implements IGameEngine {
     };
 
     const newBoard = new Map(this.state.board);
-    newBoard.set(this.cellKey(from.q, from.r), {
+    newBoard.set(cellKey(from.q, from.r), {
       coord: from,
       pieceColor: null,
       piecePlayerId: null,
     });
-    newBoard.set(this.cellKey(to.q, to.r), {
+    newBoard.set(cellKey(to.q, to.r), {
       coord: to,
       pieceColor: fromCell.pieceColor,
       piecePlayerId: fromCell.piecePlayerId,
