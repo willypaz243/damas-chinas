@@ -97,8 +97,8 @@ export class GameEngine implements IGameEngine {
     return clone;
   }
 
-  private saveSnapshot(): void {
-    this.snapshots.push({
+  private createSnapshot(): GameState {
+    return {
       board: this.cloneBoard(this.state.board),
       players: this.state.players.map(p => ({ ...p })),
       currentPlayer: { ...this.state.currentPlayer },
@@ -115,7 +115,11 @@ export class GameEngine implements IGameEngine {
       validMoves: [...this.state.validMoves],
       winner: this.state.winner ? { ...this.state.winner } : null,
       isGameOver: this.state.isGameOver,
-    });
+    };
+  }
+
+  private saveSnapshot(): void {
+    this.snapshots.push(this.createSnapshot());
   }
 
   private setSelection(coord: HexCoord | null, moves: HexCoord[]): void {

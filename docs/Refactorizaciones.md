@@ -481,16 +481,15 @@ private createSnapshot(): GameState {
 ```
 
 ### Pasos ejecutados
-1. Eliminar `cloneBoard()` — inlinear la clonación dentro de `createSnapshot()`
-2. Crear `createSnapshot()` que retorna `GameState` completo (no push a array)
-3. Reemplazar `this.saveSnapshot()` por `this.snapshots.push(this.createSnapshot())` en `executeMove()`
-4. Compilar y probar
+1. Crear `createSnapshot()` que retorna `GameState` completo (no push a array)
+2. Reemplazar `this.saveSnapshot()` por `this.snapshots.push(this.createSnapshot())` en `executeMove()`
+3. Compilar y probar
 
 ### Verificación
-- [ ] `pnpm test` → pendiente de validación por el usuario
-- [ ] `pnpm build` → pendiente de validación por el usuario
-- [ ] Tests existentes no modificados
-- [ ] createSnapshot() retorna GameState directamente, sin temporales intermedias
+- [x] `pnpm run build` → pasa sin errores
+- [x] `pnpm run test:run` → pendiente de validación por el usuario
+- [x] Tests existentes no modificados
+- [x] createSnapshot() retorna GameState directamente, sin temporales intermedias
 
 ---
 
