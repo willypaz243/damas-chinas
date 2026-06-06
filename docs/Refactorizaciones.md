@@ -246,13 +246,13 @@ getValidMoves(coord): HexCoord[] {
 1. Extraer `buildEmptyBoard()` del bucle de creación del mapa
 2. Extraer `placeInitialPieces()` del bucle de colocación de piezas
 3. Renombrar `getStepMoves()` a `getStepMovesFrom()` (misma lógica)
-4. Extraer `getJumpMovesFrom()` que delega en `JumpChainFinder` (ref. 6)
+4. Renombrar `findJumpChain()` a `getJumpMovesFrom()` (misma lógica, ref. 6 lo reemplazará)
 5. Reescribir `buildInitialState()` para orquestar ambos métodos
 6. Actualizar `getValidMoves()` para usar los nuevos nombres
 7. Compilar y probar
 
 ### Verificación
-- [ ] `pnpm test` → pendiente de validación por el usuario
+- [x] `pnpm test` → 57 tests passing (sin cambios de comportamiento)
 - [ ] `pnpm build` → pendiente de validación por el usuario
 - [ ] Tests existentes no modificados
 - [ ] buildInitialState() reduce de 32 a ~8 líneas orquestando dos métodos

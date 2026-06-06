@@ -17,22 +17,8 @@ export class GameEngine implements IGameEngine {
   }
 
   private buildInitialState(): GameState {
-    const board = new Map<string, Cell>();
-    for (const { q, r } of this.board.getAllCells()) {
-      const coord = { q, r };
-      board.set(`${q},${r}`, { coord, pieceColor: null, piecePlayerId: null });
-    }
-
-    for (const player of this.config.players) {
-      const isSouth = player.pointIndex === 0;
-      for (const { q, r } of this.board.getAllCells()) {
-        if (isSouth && r > TRIANGLE_CUTOFF) {
-          board.set(`${q},${r}`, { coord: { q, r }, pieceColor: player.color, piecePlayerId: player.id });
-        } else if (!isSouth && r < -TRIANGLE_CUTOFF) {
-          board.set(`${q},${r}`, { coord: { q, r }, pieceColor: player.color, piecePlayerId: player.id });
-        }
-      }
-    }
+    const board = this.buildEmptyBoard();
+    this.placeInitialPieces(board);
 
     const firstPlayer = this.config.players.find(p => p.id === this.config.firstPlayerId)!;
 
@@ -49,11 +35,32 @@ export class GameEngine implements IGameEngine {
     };
   }
 
+  private buildEmptyBoard(): Map<string, Cell> {
+    const board = new Map<string, Cell>();
+    for (const { q, r } of this.board.getAllCells()) {
+      board.set(cellKey(q, r), { coord: { q, r }, pieceColor: null, piecePlayerId: null });
+    }
+    return board;
+  }
+
+  private placeInitialPieces(board: Map<string, Cell>): void {
+    for (const player of this.config.players) {
+      const isSouth = player.pointIndex === 0;
+      for (const { q, r } of this.board.getAllCells()) {
+        if (isSouth && r > TRIANGLE_CUTOFF) {
+          board.set(cellKey(q, r), { coord: { q, r }, pieceColor: player.color, piecePlayerId: player.id });
+        } else if (!isSouth && r < -TRIANGLE_CUTOFF) {
+          board.set(cellKey(q, r), { coord: { q, r }, pieceColor: player.color, piecePlayerId: player.id });
+        }
+      }
+    }
+  }
+
   private getCell(q: number, r: number): Cell | undefined {
     return this.state.board.get(cellKey(q, r));
   }
 
-  private getStepMoves(coord: HexCoord): HexCoord[] {
+  private getStepMovesFrom(coord: HexCoord): HexCoord[] {
     return this.board.getNeighbors(coord.q, coord.r)
       .filter(n => {
         const cell = this.getCell(n.q, n.r);
@@ -61,7 +68,7 @@ export class GameEngine implements IGameEngine {
       });
   }
 
-  private findJumpChain(coord: HexCoord, visited: Set<string> = new Set()): HexCoord[] {
+  private getJumpMovesFrom(coord: HexCoord, visited: Set<string> = new Set()): HexCoord[] {
     const jumps: HexCoord[] = [];
     const key = cellKey(coord.q, coord.r);
     if (visited.has(key)) return jumps;
@@ -80,7 +87,7 @@ export class GameEngine implements IGameEngine {
       const bCell = this.getCell(beyond.q, beyond.r);
       if (bCell && bCell.pieceColor === null) {
         jumps.push(beyond);
-        jumps.push(...this.findJumpChain(beyond, visited));
+        jumps.push(...this.getJumpMovesFrom(beyond, visited));
       }
     }
 
@@ -92,7 +99,7 @@ export class GameEngine implements IGameEngine {
     const cell = this.getCell(coord.q, coord.r);
     if (!cell || cell.pieceColor === null) return [];
 
-    return [...this.getStepMoves(coord), ...this.findJumpChain(coord)];
+    return [...this.getStepMovesFrom(coord), ...this.getJumpMovesFrom(coord)];
   }
 
   private getTargetZoneCells(player: PlayerConfig): HexCoord[] {
